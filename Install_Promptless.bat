@@ -1,25 +1,25 @@
 @echo off
 
 :: SpotX parameters
-:: -new_theme       : enables the new Spotify UI
-:: -block_update_on : blocks Spotify from auto-updating
-:: -podcasts_off    : hides podcasts and related junk from the UI
-:: -audiobooks_off  : hides audiobooks section
-set param=-new_theme -block_update_on -podcasts_off -audiobooks_off
+:: -new_theme                      : new UI theme
+:: -block_update_on                : block Spotify auto-updates
+:: -podcasts_off                   : hide podcasts/episodes/audiobooks
+:: -adsections_off                 : hide ad-like sections from homepage
+:: -confirm_uninstall_ms_spoti     : auto-answer Y if MS Store Spotify is found
+:: -confirm_spoti_recomended_over  : auto-answer Y if Spotify version is outdated
+:: -language en                    : skip the language selection prompt entirely
+set param=-new_theme -block_update_on -podcasts_off -adsections_off -confirm_uninstall_ms_spoti -confirm_spoti_recomended_over -language en
 
 set url='https://raw.githubusercontent.com/SpotX-Official/SpotX/refs/heads/main/run.ps1'
 set url2='https://spotx-official.github.io/SpotX/run.ps1'
+set tls=[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12;
 
 echo ====================================
 echo  Step 1: Applying SpotX...
 echo ====================================
 
-:: Override Read-Host globally before running SpotX so all prompts return "N" automatically
-%SYSTEMROOT%\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -Command ^
-"[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12; ^
-function Read-Host { param([string]$Prompt) Write-Host ($Prompt + ' N') -ForegroundColor Cyan; return 'N' }; ^
-$p='%param%'; ^
-& { $(try { iwr -useb %url% } catch { $p+=' -m'; iwr -useb %url2% }) } $p | iex"
+%SYSTEMROOT%\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass ^
+-Command "%tls% $p='%param%'; & { $(try { iwr -useb %url% } catch { $p+=' -m'; iwr -useb %url2% }) } $p | iex"
 
 if %errorlevel% neq 0 (
     echo [ERROR] SpotX failed with code %errorlevel%
